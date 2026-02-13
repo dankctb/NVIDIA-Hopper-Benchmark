@@ -32,7 +32,12 @@ If you find this work useful, please cite this project and our papers.
 
 ## Build & Usage
 
-In the folder, use `make` or `./compile.sh` to build, and use `./run.sh` or `./run_all.sh` to run.
+In each folder containing Makefile, use `make` or `./compile.sh` to build, and use `./run.sh` or `./run_all.sh` to run.
+For the TMA benchmarking,
+```
+ncu --cache-control none --set full -o tma_h100_sxm.ncu-rep --kernel-name tma_bw ./tma_bw
+
+```
 
 ## Acknowledgment
 
