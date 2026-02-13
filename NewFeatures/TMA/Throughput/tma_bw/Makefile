@@ -12,9 +12,10 @@ CC := nvcc
 INCLUDE := 
 LIB := 
 
-SRC = tma_bw.cu
-
-EXE = tma_bw
+SRC = tma_bw_analytical.cu
+EXE = tma_bw_analytical
+# SRC = tma_bw.cu
+# EXE = tma_bw
 
 release:
 	$(CC) $(CUOPTS) $(SRC) -o $(EXE) -I$(INCLUDE) -L$(LIB) -lcudart
