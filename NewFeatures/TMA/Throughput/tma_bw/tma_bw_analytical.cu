@@ -9,8 +9,8 @@ using barrier = cuda::barrier<cuda::thread_scope_block>;
 typedef float dtype;
 
 #define ARRAY_SIZE (4 * 1024*1024*(1024/sizeof(dtype))) // GB
-
 #define THREADS_PER_BLOCK 1024
+
 
 constexpr int LOAD_SIZE_LIST[] = {1*1024, 2*1024, 4*1024, 8*1024, 12*1024, 16*1024}; //bytes
 constexpr int LOAD_SIZE = LOAD_SIZE_LIST[5];
@@ -75,6 +75,7 @@ int main() {
     CUDA_CHECK(cudaGetDeviceProperties(&deviceProp, 0));
     int sm_count = deviceProp.multiProcessorCount;  // SM count
     int BLOCKS[] = {sm_count, sm_count * 2, sm_count * 3, sm_count * 4};
+    unsigned int iterations = 10;
 
     for (int i = 0; i < sizeof(BLOCKS)/sizeof(int); ++i) {
         printf("Block size = %d, Load size = %d KB\n", BLOCKS[i], LOAD_SIZE/1024);
@@ -87,7 +88,7 @@ int main() {
         CUDA_CHECK(cudaMalloc(&dsink_g, sizeof(dtype)));
 
         init_data<<<BLOCKS[i], THREADS_PER_BLOCK>>>(array_g);
-        tma_bw<<<BLOCKS[i], 1>>>(array_g, dsink_g);
+        // tma_bw<<<BLOCKS[i], 1>>>(array_g, dsink_g, ITERATIONS);
 
 
         cudaEvent_t start, stop;
@@ -95,7 +96,7 @@ int main() {
         cudaEventCreate(&stop);
         cudaEventRecord(start);
 
-        tma_bw<<<BLOCKS[i], 1>>>(array_g, dsink_g);
+        tma_bw<<<BLOCKS[i], 1>>>(array_g, dsink_g, iterations);
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);
         CUDA_CHECK(cudaPeekAtLastError());
@@ -104,7 +105,7 @@ int main() {
 
         CUDA_CHECK(cudaMemcpy(dsink, dsink_g, sizeof(dtype), cudaMemcpyDeviceToHost));
         printf("Total time = %f ms, transfer size = %lu GB\n", milliseconds, ARRAY_SIZE * sizeof(dtype) / 1024 / 1024 / 1024);
-        printf("Throughput: %f GB/s\n", ARRAY_SIZE * sizeof(dtype) / (milliseconds / 1000) / 1024 / 1024 / 1024);
+        printf("Throughput: %f GB/s\n", ARRAY_SIZE * sizeof(dtype) * ITERATIONS / (milliseconds / 1000) / 1024 / 1024 / 1024);
     }
 
     
